@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const bodyParser = require('body-parser')
 
 let persons = [
     {
@@ -23,6 +24,8 @@ let persons = [
       id: 2
     }
   ]
+
+app.use(bodyParser.json())
 
 app.get('/api/persons', (req, res) => {
   res.json(persons)
@@ -49,6 +52,20 @@ app.delete('/api/persons/:id', (req, res) => {
   } else {
     res.status(404).send('Not Found');
   }
+})
+
+app.post('/api/persons', (req, res) => {
+  const newPerson = req.body;
+  console.log(newPerson);
+
+  const maxId = persons.length > 0
+    ? Math.max(...persons.map(p => p.id)) : 0;
+
+  newPerson.id = maxId + 1;
+
+  persons = persons.concat(newPerson)
+
+  res.json(newPerson)
 })
 
 app.get('/info', (req, res) => {
