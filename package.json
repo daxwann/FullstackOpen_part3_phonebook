@@ -1,0 +1,27 @@
+{
+  "name": "fullstackopen_part3_phonebook",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "watch": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daxwann/FullstackOpen_part3_phonebook.git"
+  },
+  "author": "Dax Wann",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/daxwann/FullstackOpen_part3_phonebook/issues"
+  },
+  "homepage": "https://github.com/daxwann/FullstackOpen_part3_phonebook#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.1"
+  }
+}
