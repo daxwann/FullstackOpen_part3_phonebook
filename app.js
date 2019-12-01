@@ -39,6 +39,18 @@ app.get('/api/persons/:id', (req, res) => {
   }
 })
 
+app.delete('/api/persons/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const person = persons.find(person => person.id === id);
+
+  if (person) {
+    persons = persons.filter(person => person.id !== id);
+    res.status(204).send(`${person.name} has been deleted`);
+  } else {
+    res.status(404).send('Not Found');
+  }
+})
+
 app.get('/info', (req, res) => {
   const time = new Date();
   res.send(`<p>Phonebook has info for ${persons.length} people</p>\n<p>${time}</p>`)
