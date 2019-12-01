@@ -56,6 +56,25 @@ app.delete('/api/persons/:id', (req, res) => {
 
 app.post('/api/persons', (req, res) => {
   const newPerson = req.body;
+
+  if (!newPerson.name) {
+    return res.status(400).json({
+      error: 'name missing'
+    })
+  }
+
+  if (!newPerson.number) {
+    return res.status(400).json({
+      error: 'number missing'
+    })
+  }
+
+  if (persons.find(person => person.name === newPerson.name)) {
+    return res.status(400).json({
+      error: 'person already exists'
+    })
+  }
+
   console.log(newPerson);
 
   const maxId = persons.length > 0
