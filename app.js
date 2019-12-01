@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
+const morgan = require('morgan')
 
 let persons = [
     {
@@ -25,7 +26,15 @@ let persons = [
     }
   ]
 
+// morgan config
+morgan.token('body', req => {
+  if (req.method === "POST") {
+    return JSON.stringify(req.body)
+  }
+})
+
 app.use(bodyParser.json())
+app.use(morgan(':method :url :status :response-time :body'))
 
 app.get('/api/persons', (req, res) => {
   res.json(persons)
@@ -75,8 +84,6 @@ app.post('/api/persons', (req, res) => {
     })
   }
 
-  console.log(newPerson);
-
   const maxId = persons.length > 0
     ? Math.max(...persons.map(p => p.id)) : 0;
 
@@ -91,6 +98,16 @@ app.get('/info', (req, res) => {
   const time = new Date();
   res.send(`<p>Phonebook has info for ${persons.length} people</p>\n<p>${time}</p>`)
 })
+
+// middleware for catching requests made to non-existent routes. Use after routes.
+
+const notFound = (req, res) => {
+  res.status(404).json({error: 'unknown endpoint'})
+}
+
+app.use(notFound)
+
+// app entrypoint
 
 const PORT = 3001
 
