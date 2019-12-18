@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
 const morgan = require('morgan')
 const cors = require('cors')
 
@@ -38,6 +39,9 @@ app.use(bodyParser.json())
 app.use(cors())
 app.use(morgan(':method :url :status :response-time :body'))
 app.use(express.static('build'))
+
+// MongoDB connect
+let url = process.env.PERSONSMONGODBURL || "mongodb://db:27017/persons";
 
 app.get('/api/persons', (req, res) => {
   res.json(persons)
