@@ -6,17 +6,17 @@ if (process.argv.length < 3 || process.argv.length > 4) {
 }
 
 const password = process.argv[2];
-const entries = {};
+let entries = {};
 
 if (process.argv.length === 4) {
-  entries = JSON.parse(argv[3]);
+  entries = JSON.parse(process.argv[3]);
 }
 
 // connect to mongodb
 const url = 
   `mongodb+srv://root:${password}@cluster0-a3c1l.mongodb.net/persons?retryWrites=true&w=majority`;
 
-mongoose.connect(url, { useNewURLParser: true });
+mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // create schema and model
 const personSchema = new mongoose.Schema({
