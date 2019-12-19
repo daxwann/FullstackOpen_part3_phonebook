@@ -5,28 +5,10 @@ const mongoose = require('mongoose')
 const morgan = require('morgan')
 const cors = require('cors')
 
-let persons = [
-    {
-      name: "Liam Gallagher",
-      number: "54-21-9297364",
-      id: 11
-    },
-    {
-      name: "Keanu Reeves",
-      number: "23-45-8920932",
-      id: 12
-    },
-    {
-      name: "Arto Hellas",
-      number: "040-123446",
-      id: 1
-    },
-    {
-      name: "Ada Lovelace",
-      number: "39-44-3948572",
-      id: 2
-    }
-  ]
+// load env in development
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 // morgan config
 morgan.token('body', req => {
@@ -35,16 +17,40 @@ morgan.token('body', req => {
   }
 })
 
+// use middlewares
 app.use(bodyParser.json())
 app.use(cors())
 app.use(morgan(':method :url :status :response-time :body'))
 app.use(express.static('build'))
 
 // MongoDB connect
-let url = process.env.PERSONSMONGODBURL || "mongodb://db:27017/persons";
+let url = process.env.DB_URL || "mongodb://db:27017/persons";
 
+mongoose.connect(url, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String
+})
+
+personSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+})
+
+const Person = mongoose.model('Person', personSchema);
+
+// routes
 app.get('/api/persons', (req, res) => {
-  res.json(persons)
+  Person.find({}).then(persons => {
+    res.json(persons.map(p => p.toJSON()));
+  })
 })
 
 app.get('/api/persons/:id', (req, res) => {
