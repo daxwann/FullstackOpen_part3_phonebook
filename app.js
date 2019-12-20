@@ -48,6 +48,7 @@ const Person = mongoose.model('Person', personSchema);
 
 // routes
 app.get('/api/persons', (req, res) => {
+	console.log("get people");
   Person.find({}).then(persons => {
     res.json(persons.map(p => p.toJSON()));
   })
@@ -55,25 +56,16 @@ app.get('/api/persons', (req, res) => {
 
 app.get('/api/persons/:id', (req, res) => {
   const id = Number(req.params.id);
-  const person = persons.find(person => person.id === id);
-
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).send('Not Found');
-  }
+  Person.findById(id).then(person => {
+		res.json(person.toJSON());
+	});
 })
 
 app.delete('/api/persons/:id', (req, res) => {
   const id = Number(req.params.id);
-  const person = persons.find(person => person.id === id);
-
-  if (person) {
-    persons = persons.filter(person => person.id !== id);
-    res.status(204).send(`${person.name} has been deleted`);
-  } else {
-    res.status(404).send('Not Found');
-  }
+  Person.findByIdAndRemove(id).then(result => {
+		res.status(204);
+	});
 })
 
 app.post('/api/persons', (req, res) => {
@@ -91,20 +83,15 @@ app.post('/api/persons', (req, res) => {
     })
   }
 
-  if (persons.find(person => person.name === newPerson.name)) {
-    return res.status(400).json({
+  Person.find({ name: newPerson.name }).then(result => {
+		return res.status(400).json({
       error: 'person already exists'
     })
-  }
-
-  const maxId = persons.length > 0
-    ? Math.max(...persons.map(p => p.id)) : 0;
-
-  newPerson.id = maxId + 1;
-
-  persons = persons.concat(newPerson)
-
-  res.json(newPerson)
+  }, rejection => {
+		Person.create(newPerson).then(result => {
+			res.json(newPerson);
+		})
+	});
 })
 
 app.get('/info', (req, res) => {
