@@ -50,21 +50,25 @@ const Person = mongoose.model('Person', personSchema);
 app.get('/api/persons', (req, res) => {
 	console.log("get people");
   Person.find({}).then(persons => {
-    res.json(persons.map(p => p.toJSON()));
+    return res.json(persons.map(p => p.toJSON()));
   })
 })
 
 app.get('/api/persons/:id', (req, res) => {
   const id = Number(req.params.id);
   Person.findById(id).then(person => {
-		res.json(person.toJSON());
+		return res.json(person.toJSON());
 	});
 })
 
 app.delete('/api/persons/:id', (req, res) => {
   const id = Number(req.params.id);
   Person.findByIdAndRemove(id).then(result => {
-		res.status(204);
+		return res.status(204);
+	}, rejection => {
+		return res.status(400).json({
+			error: 'unable to delete person'
+		})
 	});
 })
 
@@ -84,15 +88,17 @@ app.post('/api/persons', (req, res) => {
   }
 
   Person.find({ name: newPerson.name }).then(result => {
-		return res.status(400).json({
-      error: 'person already exists'
-    })
-  }, rejection => {
-		Person.create(newPerson).then(result => {
-			res.json(newPerson);
-		})
+		if (result.length > 0) {
+			return res.status(400).json({
+      	error: 'person already exists'
+    	})
+		} else {
+			Person.create(newPerson).then(result => {
+				return res.status(201).json(newPerson);
+			})
+		}
 	});
-})
+});
 
 app.get('/info', (req, res) => {
   const time = new Date();
