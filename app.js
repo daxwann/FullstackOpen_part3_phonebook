@@ -1,9 +1,9 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
-const mongoose = require('mongoose')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
 
 // load env in development
 if (process.env.NODE_ENV !== 'production') {
@@ -22,29 +22,6 @@ app.use(bodyParser.json())
 app.use(cors())
 app.use(morgan(':method :url :status :response-time :body'))
 app.use(express.static('build'))
-
-// MongoDB connect
-let url = process.env.DB_URL || "mongodb://db:27017/persons";
-
-mongoose.connect(url, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String
-})
-
-personSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
-    delete returnedObject._id
-    delete returnedObject.__v
-  }
-})
-
-const Person = mongoose.model('Person', personSchema);
 
 // routes
 app.get('/api/persons', (req, res) => {
