@@ -18,40 +18,63 @@ morgan.token('body', req => {
 })
 
 // use middlewares
+app.use(express.static('build'))
 app.use(bodyParser.json())
 app.use(cors())
 app.use(morgan(':method :url :status :response-time :body'))
-app.use(express.static('build'))
 
 // routes
-app.get('/api/persons', (req, res) => {
-  Person.find({}).then(persons => {
-    return res.json(persons.map(p => p.toJSON()));
-  })
+app.get('/api/persons', (req, res, next) => {
+  Person.find({})
+    .then(persons => {
+      return res.json(persons.map(p => p.toJSON()));
+    })
+    .catch(error => next(error));
 })
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
   const id = req.params.id;
-  Person.findById(id).then(person => {
-		return res.json(person.toJSON());
-	});
+
+  Person.findById(id)
+    .then(person => {
+      if (person) {
+		    return res.json(person.toJSON());
+      } else {
+        return res.status(404).json({error: "cannot find person"});
+      }
+	  })
+    .catch(error => next(error));
 })
 
-app.put('/api/persons/:id', (req, res) => {
+app.put('/api/persons/:id', (req, res, next) => {
   const id = req.params.id;
-  Person.findByIdAndUpdate(id, { number: req.body.number }, { new: true }).then(person => {
-    return res.json(person.toJSON());
-  })
+
+  Person.findByIdAndUpdate(id, { number: req.body.number }, { new: true })
+    .then(person => {
+      if (person) {
+        return res.json(person.toJSON());
+      } else {
+        return res.status(404).json({error: "cannot find person"});
+      }
+    })
+    .catch(error => next(error));
 })
 
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res, next) => {
   const id = req.params.id;
-  Person.findByIdAndRemove(id).then(person => {
-		return res.status(204).json(person.toJSON());
-	});
+
+  Person.findByIdAndRemove(id)
+    .then(person => {
+      if (person) {
+		    return res.status(204).json(person.toJSON());
+      } else {
+        return res.status(404).json({error: "cannot find person"})
+      }
+	  })
+    .catch(error => next(error))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const newPerson = req.body;
 
   if (!newPerson.name) {
@@ -66,17 +89,19 @@ app.post('/api/persons', (req, res) => {
     })
   }
 
-  Person.find({ name: newPerson.name }).then(result => {
-		if (result.length > 0) {
-			return res.status(400).json({
-      	error: 'person already exists'
-    	})
-		} else {
-			Person.create(newPerson).then(person => {
-				return res.status(201).json(person.toJSON());
-			})
-		}
-	});
+  Person.find({ name: newPerson.name })
+    .then(result => {
+		  if (result.length > 0) {
+			  return res.status(400).json({
+      	  error: 'person already exists'
+    	  })
+		  } else {
+			  Person.create(newPerson).then(person => {
+				  return res.status(201).json(person.toJSON());
+		  	})
+		  }
+	  })
+    .catch(error => next(error));
 });
 
 app.get('/info', (req, res) => {
@@ -91,6 +116,20 @@ const notFound = (req, res) => {
 }
 
 app.use(notFound)
+
+// error handler
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 // app entrypoint
 

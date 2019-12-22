@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 
+// config
+mongoose.set('useFindAndModify', false)
+
 // load env in development
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
