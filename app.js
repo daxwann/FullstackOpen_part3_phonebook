@@ -1,9 +1,9 @@
-const express = require('express')
-const app = express()
-const bodyParser = require('body-parser')
-const morgan = require('morgan')
-const cors = require('cors')
-const Person = require('./models/person')
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const cors = require('cors');
+const Person = require('./models/person');
 
 // load env in development
 if (process.env.NODE_ENV !== 'production') {
@@ -12,16 +12,16 @@ if (process.env.NODE_ENV !== 'production') {
 
 // morgan config
 morgan.token('body', req => {
-  if (req.method === "POST") {
-    return JSON.stringify(req.body)
+  if (req.method === 'POST') {
+    return JSON.stringify(req.body);
   }
-})
+});
 
 // use middlewares
-app.use(express.static('build'))
-app.use(bodyParser.json())
-app.use(cors())
-app.use(morgan(':method :url :status :response-time :body'))
+app.use(express.static('build'));
+app.use(bodyParser.json());
+app.use(cors());
+app.use(morgan(':method :url :status :response-time :body'));
 
 // route handlers
 app.get('/api/persons', (req, res, next) => {
@@ -30,7 +30,7 @@ app.get('/api/persons', (req, res, next) => {
       return res.json(persons.map(p => p.toJSON()));
     })
     .catch(error => next(error));
-})
+});
 
 app.get('/api/persons/:id', (req, res, next) => {
   const id = req.params.id;
@@ -38,13 +38,13 @@ app.get('/api/persons/:id', (req, res, next) => {
   Person.findById(id)
     .then(person => {
       if (person) {
-		    return res.json(person.toJSON());
+        return res.json(person.toJSON());
       } else {
-        return res.status(404).json({error: "cannot find person"});
+        return res.status(404).json({ error: 'cannot find person' });
       }
-	  })
+    })
     .catch(error => next(error));
-})
+});
 
 app.put('/api/persons/:id', (req, res, next) => {
   const id = req.params.id;
@@ -54,11 +54,11 @@ app.put('/api/persons/:id', (req, res, next) => {
       if (person) {
         return res.json(person.toJSON());
       } else {
-        return res.status(404).json({error: "cannot find person"});
+        return res.status(404).json({ error: 'cannot find person' });
       }
     })
     .catch(error => next(error));
-})
+});
 
 app.delete('/api/persons/:id', (req, res, next) => {
   const id = req.params.id;
@@ -66,13 +66,13 @@ app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndRemove(id)
     .then(person => {
       if (person) {
-		    return res.status(204).json(person.toJSON());
+        return res.status(204).json(person.toJSON());
       } else {
-        return res.status(404).json({error: "cannot find person"})
+        return res.status(404).json({ error: 'cannot find person' });
       }
-	  })
-    .catch(error => next(error))
-})
+    })
+    .catch(error => next(error));
+});
 
 app.post('/api/persons', (req, res, next) => {
   const newPerson = req.body;
@@ -80,7 +80,7 @@ app.post('/api/persons', (req, res, next) => {
   if (!newPerson.name) {
     return res.status(400).json({
       error: 'Name is required'
-    })
+    });
   }
 
   // validation for number in person schema
@@ -92,54 +92,59 @@ app.post('/api/persons', (req, res, next) => {
 
   Person.find({ name: newPerson.name })
     .then(result => {
-		  if (result.length > 0) {
-			  return res.status(400).json({
-      	  error: 'person already exists'
-    	  })
-		  } else {
-			  Person.create(newPerson)
+      if (result.length > 0) {
+        return res.status(400).json({
+          error: 'person already exists'
+        });
+      } else {
+        Person.create(newPerson)
           .then(person => {
-				    return res.status(201).json(person.toJSON());
-		  	  })
+            return res.status(201).json(person.toJSON());
+          })
           .catch(error => next(error));
-		  }
-	  })
+      }
+    })
     .catch(error => next(error));
 });
 
-app.get('/info', (req, res) => {
+app.get('/info', (req, res, next) => {
   const time = new Date();
-  res.send(`<p>Phonebook has info for ${persons.length} people</p>\n<p>${time}</p>`)
-})
+
+  Person.countDocuments({})
+    .then(count => {
+      return res.send(`<p>Phonebook has info for ${count} people</p>\n<p>${time}</p>`);
+    })
+    .catch(error => next(error));
+});
 
 // middleware for catching requests made to non-existent routes. Use after routes.
 
 const notFound = (req, res) => {
-  res.status(404).json({error: 'unknown endpoint'})
-}
+  res.status(404).json({ error: 'unknown endpoint' });
+};
 
-app.use(notFound)
+app.use(notFound);
 
 // error handler
 
 const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
+  console.error(error.message);
 
   if (error.name === 'CastError' && error.kind === 'ObjectId') {
-    return response.status(400).send({ error: 'Malformatted id' })
+    return response.status(400).send({ error: 'Malformatted id' });
   } else if (error.name === 'ValidationError') {
-    return response.status(400).json({ error: error.message })
+    return response.status(400).json({ error: error.message });
   }
 
-  next(error)
-}
+  next(error);
+};
 
-app.use(errorHandler)
+app.use(errorHandler);
 
 // app entrypoint
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  console.log(`Server running on port ${PORT}`);
+});

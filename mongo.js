@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 if (process.argv.length < 3 || process.argv.length > 4) {
-  console.log("usage: node mongo.js password [\"{ name: number [, ...] }\"]");
+  console.log('usage: node mongo.js password ["{ name: number [, ...] }"]');
   process.exit(1);
 }
 
@@ -13,8 +13,7 @@ if (process.argv.length === 4) {
 }
 
 // connect to mongodb
-const url = 
-  `mongodb+srv://root:${password}@cluster0-a3c1l.mongodb.net/persons?retryWrites=true&w=majority`;
+const url = `mongodb+srv://root:${password}@cluster0-a3c1l.mongodb.net/persons?retryWrites=true&w=majority`;
 
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -29,14 +28,14 @@ const Person = mongoose.model('Person', personSchema);
 // view all persons
 if (process.argv.length === 3) {
   Person.find({}).then(result => {
-    console.log("phonebook:");
+    console.log('phonebook:');
     result.forEach(p => {
       console.log(`${p.name} ${p.number}`);
-    })
+    });
     mongoose.connection.close();
-  }).then(result => {
+  }).then(() => {
     process.exit(0);
-  })
+  });
 }
 
 // add persons
@@ -52,11 +51,12 @@ for (let n of newNames) {
   let newPerson = new Person({
     name: n,
     number: entries[n]
-  })
+  });
 
-  newPerson.save().then(result => {
-    console.log(`${n} is saved!`);
-    addedMap[n] = true;
-    mongoose.connection.close();
-  })
+  newPerson.save()
+    .then(createdPerson => {
+      console.log(`${createdPerson.name} is saved!`);
+      addedMap[n] = true;
+      mongoose.connection.close();
+    });
 }
