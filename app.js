@@ -96,9 +96,11 @@ app.post('/api/persons', (req, res, next) => {
       	  error: 'person already exists'
     	  })
 		  } else {
-			  Person.create(newPerson).then(person => {
-				  return res.status(201).json(person.toJSON());
-		  	})
+			  Person.create(newPerson)
+          .then(person => {
+				    return res.status(201).json(person.toJSON());
+		  	  })
+          .catch(error => next(error));
 		  }
 	  })
     .catch(error => next(error));
