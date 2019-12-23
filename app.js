@@ -23,7 +23,7 @@ app.use(bodyParser.json())
 app.use(cors())
 app.use(morgan(':method :url :status :response-time :body'))
 
-// routes
+// route handlers
 app.get('/api/persons', (req, res, next) => {
   Person.find({})
     .then(persons => {
@@ -124,7 +124,9 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
-  } 
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
 
   next(error)
 }
